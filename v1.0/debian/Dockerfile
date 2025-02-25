@@ -1,19 +1,19 @@
 ARG DEBIAN_VERSION=bookworm-slim
-ARG GOLANG_VERSION=1.16-alpine
+ARG GOLANG_VERSION=1.19-bookworm
 
-FROM --platform=${BUILDPLATFORM} golang:${GOLANG_VERSION} AS builder
+FROM golang:${GOLANG_VERSION} AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
 
 WORKDIR /src
 
-RUN apk add --no-cache --no-progress gcc musl-dev git \
+RUN apt-get update -q \
+    && apt-get install -yq gcc build-essential libc6-dev git \
     && git clone --depth 1 --branch v1.0 https://github.com/joohoi/acme-dns . \
-    && ls -la
-
-RUN go mod download \
-    && GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /out/acme-dns
+    && go mod download \
+    && CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /out/acme-dns \
+    && rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
 
 FROM debian:${DEBIAN_VERSION}
 

@@ -1,5 +1,5 @@
 DOCKER_IMAGE_NAME := skippyprime/acme-dns
-DOCKER_BUILD_PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6
+DOCKER_BUILD_PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7
 
 build:
 	docker build -f v1.1/debian/Dockerfile -t $(DOCKER_IMAGE_NAME):v1.1-bookworm --platform $(DOCKER_BUILD_PLATFORMS) .

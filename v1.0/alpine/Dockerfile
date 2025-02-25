@@ -1,7 +1,7 @@
 ARG ALPINE_VERSION=3
 ARG GOLANG_VERSION=1.16-alpine
 
-FROM --platform=${BUILDPLATFORM} golang:${GOLANG_VERSION} AS builder
+FROM golang:${GOLANG_VERSION} AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -10,14 +10,12 @@ WORKDIR /src
 
 RUN apk add --no-cache --no-progress gcc musl-dev git \
     && git clone --depth 1 --branch v1.0 https://github.com/joohoi/acme-dns . \
-    && ls -la
-
-RUN go mod download \
-    && GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /out/acme-dns
+    && go mod download \
+    && CGO_ENABLED=1 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /out/acme-dns
 
 FROM alpine:${ALPINE_VERSION}
 
-RUN apk --no-cache add ca-certificates \
+RUN apk --no-cache add ca-certificates musl \
     && mkdir -p /etc/acme-dns \
     && mkdir -p /var/lib/acme-dns
 COPY --from=builder /out/acme-dns /usr/local/bin/acme-dns
